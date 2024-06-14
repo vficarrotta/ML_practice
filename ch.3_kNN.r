@@ -1,3 +1,4 @@
+## kNN clustering
 ## vficarrotta
 ## machine learning in R
 ## data from: https://github.com/PacktPublishing/Machine-Learning-with-R-Fourth-Edition/
@@ -19,7 +20,7 @@ str(wbcd)
 table(wbcd$diagnosis)
 
 # strip ids
-wbcd <- wbcd[-wbcd$id]
+wbcd <- wbcd[-1]
 
 # clean diagnostic labels
 wbcd$diagnosis <- factor(wbcd$diagnosis, levels=c('B', 'M'), labels=c('Benign', 'Malignant'))
@@ -35,9 +36,11 @@ normalize <- function(x){
     return( (x-min(x)) / (max(x) - min(x)) )
 }
 
-wbcd_n <- as.data.frame(lapply(wbcd[2:31], normalize))
+wbcd_n <- as.data.frame(lapply(wbcd[2:31], FUN=normalize))
 
 summary(wbcd_n$area_mean)
+plot(density(wbcd_n$area_mean))
+
 
 ## Train and Test sets
 wbcd_train <- wbcd_n[1:469, ]
@@ -70,6 +73,12 @@ for(i in kk){
     perf_clean[i,3] <- perf[i][[1]][[1]][2,1]
 }
 colnames(perf_clean) <- c('k', 'False Postive', 'False Negative')
+
+perf_clean
+
+perf_clean[,length(perf_clean)+1] <- perf_clean[,2]+perf_clean[,3]
+
+kvals <- which(perf_clean[,4]==min(perf_clean[,4]))
 
 
 ####
@@ -111,4 +120,11 @@ for(i in kk){
     perf_clean[i,3] <- perf[i][[1]][[1]][2,1]
 }
 colnames(perf_clean) <- c('k', 'False Postive', 'False Negative')
+
+perf_clean
+
+perf_clean[,length(perf_clean)+1] <- perf_clean[,2]+perf_clean[,3]
+
+kvals <- which(perf_clean[,4]==min(perf_clean[,4]))
+
 
