@@ -1,13 +1,13 @@
 ## kNN clustering
 ## vficarrotta
 ## machine learning in R
-## data from: http://www.dt.fee.unicamp.br/~tiago/smsspamcollection/
+## data from: https://github.com/PacktPublishing/Machine-Learning-with-R-Fourth-Edition/tree/main
 
 ## dir
-setwd('C:/Users/Vince/Documents/Machine Learning in R/CH4')
+setwd('C:/Users/Brin/Documents/R ML/ML in R/')
 
 ## Libraries
-library(tm); library(SnowballC); library(wordcloud)
+library(tm); library(SnowballC); library(wordcloud); library(e1071); library(gmodels)
 
 ## Data
 sms_raw <- read.csv('sms_spam.csv', stringsAsFactors=F)
@@ -62,11 +62,11 @@ sms_dtm2 <- DocumentTermMatrix(sms_corpus, control=list(tolower=T, removeNumbers
 
 
 ## Training and Test sets
-sms_dtm_train <- sms_dtm[1:4169]
-sms_dtm_test <- sms_dtm[4170:length(sms_dtm)]
+sms_dtm_train <- sms_dtm[1:4169, ]
+sms_dtm_test <- sms_dtm[4170:5559, ]
 
 sms_train_labels <- sms_raw[1:4169, ]$type
-sms_test_labels <- sms_raw[4170:length(sms_raw), ]$type
+sms_test_labels <- sms_raw[4170:5559, ]$type
 
 prop.table(table(sms_train_labels))
 prop.table(table(sms_test_labels))
@@ -80,4 +80,40 @@ ham <- subset(sms_raw, type == 'ham')
 wordcloud(spam$text, max.words=40, scale=c(3, 0.5))
 wordcloud(ham$text, max.words=40, scale=c(3, 0.5))
 
+## Indicator Features
+sms_freq_words <- findFreqTerms(sms_dtm_train, 5)
 
+sms_dtm_freq_train <- sms_dtm_train[, sms_freq_words]
+sms_dtm_freq_test <- sms_dtm_test[, sms_freq_words]
+
+## convert the counts in train and test matrices to yes or no 
+# count strings
+
+convert_counts <- function(x){
+    x <- ifelse(x>0, 'Yes', 'No')
+}
+
+sms_train <- apply(sms_dtm_freq_train,2, convert_counts)
+sms_test <- apply(sms_dtm_freq_test, 2, convert_counts)
+
+## Build naive bayes model
+sms_classifier <- naiveBayes(sms_train, sms_train_labels)
+
+## Evaluate model performance
+sms_test_pred <- predict(sms_classifier, sms_test)
+
+CrossTable(sms_test_pred, sms_test_labels, prop.chisq=F, prop.c=F, prop.r=F, dnn=c('predicted', 'actual'))
+
+## Improve the model performance using Laplace estimator
+## Laplace estimator accounts for multiplication of 
+# probabilities where the probability is 0 because 
+# it never occurs and therefore causes an output of 
+# 0 where it should be a small probability.
+# Laplace estimator uses a 1 instead of 0 for 
+# these scenarios.
+
+sms_classifier2 <- naiveBayes(sms_train, sms_train_labels, laplace=1)
+
+sms_test_pred2 <- predict(sms_classifier2, sms_test)
+
+CrossTable(sms_test_pred2, sms_test_labels, prop.chisq=F, prop.c=F, prop.r=F, dnn=c('predicted', 'actual')))
