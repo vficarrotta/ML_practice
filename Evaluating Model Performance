@@ -1,0 +1,148 @@
+## Evaluating model performance
+## vficarrotta 2024
+## using 'naive-bayes-classification.r'
+
+## Dir
+setwd("C:/Users/Brin/Documents/R ML/ML in R/")
+
+## Library
+library("gmodels")
+library("caret")
+
+## Data
+sms_results <- read.csv("sms_results.csv")
+
+## Peeking
+# What to do about these types of errors? high probability assigned to wrong class
+head(subset(sms_results, actual_type != predict_type))
+
+## Confusion matrices
+# Accuracy/Success rate: (TP + TN) / (TP + TN + FP + FN)
+# number of true predictions divided by all predictions
+
+# Error rate: (FP + FN) / (TP + TN + FP + FN) = 1 - accuracy
+# number of false predictions divided by all predictions, or 1 minus the accuracy
+
+table(sms_results$actual_type, sms_results$predict_type)
+
+CrossTable(sms_results$actual_type, sms_results$predict_type)
+# accuracy
+(4 + 1203) / (152 + 1203 + 4 + 31)
+# 0.868
+
+# error rate
+1 - 0.868
+# 0.132
+
+## Common performance measures in machine learning
+confusionMatrix(as.factor(sms_results$predict_type), as.factor(sms_results$actual_type), positive = "spam")
+
+## cohen's kappa value
+# K = (pr_a - pr_e) / (1 - pr_e)
+
+# bottom values from CrossTable()
+pr_a <- 0.865 + 0.109
+pr_e <- (0.868 * 0.888) + (0.132 * 0.112)
+
+k <- (pr_a - pr_e) / (1 - pr_e)
+# 0.8787494
+
+# using vcd package
+library("vcd")
+Kappa(table(sms_results$actual_type, sms_results$predict_type))
+# unweighted kappa value
+
+## Sensitivity and Specificity
+# Sensitivity = true positive rate: TP / TP + FN
+# true positives divided by the total number of positives ()orrectly and incorrectly predicted)
+
+# Specificity = true negative rate: TN / TN + FP
+
+sens <- 152 / (152 + 31)
+spec <- 1203 / (1203 + 4)
+
+library(caret)
+sensitivity(sms_results$predict_type, sms_results$actual_type, positive = "spam")
+specificity(sms_results$predict_type, sms_results$actual_type, negative = "ham")
+
+## Recall and Precision
+# Precision = TP / (TP + FP)
+# the true positives divided by the true positives and the incorrectly predicted positives
+
+# Recall = TP / (TP + FN)
+# Same formula as sensitivity however interpretation is taken as having wide breadth
+# if the model has high Recall
+
+prec <- 152 / (152 + 4)
+rec <- 152 / (152 + 31)
+
+# or using caret functions
+library(caret)
+posPredValue(as.factor(sms_results$predict_type), as.factor(sms_results$actual_type), positive = "spam")
+# 0.97
+sensitivity(as.factor(sms_results$predict_type), as.factor(sms_results$actual_type), positive = "spam")
+# 0.83
+
+## The F-measure, F1-score or F-score
+# F-measure = (2 * precision * recall) / (recall + precision)
+# F-measure = (2 * TP) / (2* TP + FP + FN)
+
+fm <- (2 * prec * rec) / (prec + rec)
+# 0.89675
+
+## Visualizing performance tradoffs with ROC curves
+library(pROC)
+# ROC curves (receiver operating characteristic curve), or sensitivity/specificity plot
+# used in conjuction with AUC (area under ROC) which ranges from .5 (no predictive value) to 1 (perfect sms_classifier
+
+sms_roc <- roc(response = sms_results$actual_type, predictor = sms_results$prob_spam)
+plot(sms_roc, main = "ROC curve for SMS spam filter", col = "blue", lwd = 2, legacy.axes = T)
+
+sms_results_knn <- read.csv("sms_results_knn.csv")
+sms_roc_knn <- roc(sms_results$actual_type, sms_results_knn$p_spam)
+plot(sms_roc_knn, col = "red", lwd = 2, add = T)
+# K-nearest neighbor algorithm performs worse than the naive bayes algorithm on sms spam filtering
+
+auc(sms_roc)
+# 0.9836
+auc(sms_roc_knn)
+# 0.8942
+
+## caret package can stratify the random sampling when generating testing and training
+# datasets to guarantee a very similar proportion of classes in each set
+# use the createDataPartition() from caret
+
+## Cross-validation
+# k-fold cross validation is the industry standard for estimating model performance.
+# it randomly divides data into k completely separate random partitions called folds.
+# 10 folds is empirically the optimum k
+# use the createFolds() from caret
+
+## Example on credit data
+library(caret)
+library(C50)
+library(irr)
+
+credit <- read.csv("credit2.csv")
+
+RNGversion("3.5.2")
+set.seed(123)
+folds <- createFolds(credit$default, k = 10)
+
+cv_results <- lapply(folds, function(x) {
+    credit_train <- credit[-x, ]
+    credit_test <- credit[x, ]
+    credit_model <- C5.0(as.factor(default) ~ ., data = credit_train)
+    credit_pred <- predict(credit_model, credit_test)
+    credit_actual <- credit_test$default
+    kappa <- kappa2(data.frame(credit_actual, credit_pred))$value
+    return(kappa)
+})
+
+str(cv_results)
+mean(unlist(cv_results))
+# 0.283796
+
+
+## Botstrap sampling
+# less populart alternative to k-fold cv
