@@ -6,7 +6,7 @@
 
 
 ## Necessaries
-setwd('~/Machine Learning in R/CH3')
+setwd('')
 
 ## Libraries
 library('class'); library('gmodels')
