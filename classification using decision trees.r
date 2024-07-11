@@ -3,7 +3,7 @@
 ## 
 
 ## Directory
-setwd('C:/Users/Brin/Documents/R ML/ML in R')
+setwd('')
 
 #################################
 # Part 1: Decision Trees
