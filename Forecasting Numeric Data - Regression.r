@@ -3,10 +3,10 @@
 ## Chapter 6 Exercises
 
 ## Libraries
-library('psych'); library('rpart'); library('rpart.plot'); library(Cubist)
+library('psych'); library('rpart'); library('rpart.plot'); library('Cubist')
 
 ## Directory
-setwd('C:/Users/Brin/Documents/R ML/ML in R')
+setwd('')
 
 ## Data
 insurance <- read.csv('insurance.csv')
