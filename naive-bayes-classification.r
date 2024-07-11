@@ -4,7 +4,7 @@
 ## data from: https://github.com/PacktPublishing/Machine-Learning-with-R-Fourth-Edition/tree/main
 
 ## dir
-setwd('~/ML in R/')
+setwd('')
 
 ## Libraries
 library(tm); library(SnowballC); library(wordcloud); library(e1071); library(gmodels)
