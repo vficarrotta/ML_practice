@@ -3,7 +3,7 @@
 ## 
 
 ## Dir
-setwd('C:/Users/Brin/Documents/R ML/ML in R')
+setwd('')
 
 ## Library
 library(arules)
