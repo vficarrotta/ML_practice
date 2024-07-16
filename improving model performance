@@ -2,7 +2,7 @@
 ## vficarrotta 2024
 
 ## Dir
-setwd('C:/Users/Brin/Documents/R ML/ML in R/')
+setwd('')
 
 ## Libs
 library('caret')
