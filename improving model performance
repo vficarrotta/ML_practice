@@ -123,3 +123,5 @@ roc_rf <- roc(m_rf$pred$obs, m_rf$pred$yes)
 roc_c50 <- roc(m_c50$pred$obs, m_c50$pred$yes)
 plot(roc_rf, col='red', legacy.axes=T)
 plot(roc_c50, col='blue', add=T)
+
+# Larger aread under the curve score indicates better model
